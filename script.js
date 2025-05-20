@@ -105,6 +105,10 @@ document.getElementById('skipBtn').onclick = () => {
   socket.emit('leaveRoom', { roomId: currentRoom });
   socket.emit('joinQueue', {}); // Try finding a new person
   resetChat();
+  document.getElementById('connectedStatus').textContent = "";
+  document.getElementById('chat').classList.add('hidden');
+  document.getElementById('searching').classList.remove('hidden');
+
 };
 
 document.getElementById('stopBtn').onclick = () => {
@@ -123,6 +127,10 @@ function resetChat() {
 socket.on('strangerDisconnected', () => {
   alert('Stranger disconnected.');
   resetChat();
+  document.getElementById('connectedStatus').textContent = "";
+  document.getElementById('chat').classList.add('hidden');
+  document.getElementById('searching').classList.remove('hidden');
+
 });
 
 socket.on('stopSearching', () => {
@@ -150,4 +158,21 @@ socket.on('match', ({ roomId, partnerInfo }) => {
 
 socket.on('userCount', (count) => {
   document.getElementById('userCount').textContent = `Users Online: ${count}`;
+});
+
+socket.on('match', ({ roomId, partnerInfo }) => {
+  currentRoom = roomId;
+  document.getElementById('partnerCountry').textContent = partnerInfo.country || "Unknown";
+  document.getElementById('partnerLanguage').textContent = partnerInfo.language || "Unknown";
+  document.getElementById('connectedStatus').textContent = "Connected to a stranger!";
+  document.getElementById('searching').classList.add('hidden');
+  document.getElementById('chat').classList.remove('hidden');
+});
+
+socket.on('strangerDisconnected', () => {
+  alert('Stranger disconnected.');
+  resetChat();
+  document.getElementById('connectedStatus').textContent = "";
+  document.getElementById('chat').classList.add('hidden');
+  document.getElementById('searching').classList.remove('hidden');
 });
