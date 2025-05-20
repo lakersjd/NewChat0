@@ -11,7 +11,6 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 let waitingUsers = [];
-const reportedUsers = new Set();
 const blockedPairs = new Set();
 
 app.use(express.static(path.join(__dirname)));
@@ -21,7 +20,6 @@ function getOtherUserInRoom(roomId, currentId) {
   return currentId === id1 ? id2 : id1;
 }
 
-
 let onlineUsers = 0;
 
 io.on('connection', (socket) => {
@@ -29,23 +27,14 @@ io.on('connection', (socket) => {
   io.emit('userCount', onlineUsers);
   console.log(`User connected: ${socket.id} | Online users: ${onlineUsers}`);
 
-  console.log('User connected:', socket.id);
-
-  socket.on('joinQueue', ({ username, gender, tags, country, language }) => {
-    const user = { id: socket.id, username, gender, tags, country, language };
+  socket.on('joinQueue', ({ username }) => {
+    const user = { id: socket.id, username };
 
     const matchIndex = waitingUsers.findIndex(u =>
-      u.id !== socket.id &&
-      !blockedPairs.has(`${u.id}-${socket.id}`) &&
-      (country === "any" || u.country === "any" || u.country === country) &&
-      (language === "any" || u.language === "any" || u.language === language) &&
-      !tags.length || !u.tags.length || tags.some(tag => u.tags.includes(tag))
+      u.id !== socket.id && !blockedPairs.has(`${u.id}-${socket.id}`)
     );
 
-    
     if (matchIndex !== -1) {
-      console.log(`Match found: ${socket.id} ↔ ${matchUser.id}`);
-
       const matchUser = waitingUsers.splice(matchIndex, 1)[0];
       const roomId = `${socket.id}#${matchUser.id}`;
 
@@ -55,20 +44,18 @@ io.on('connection', (socket) => {
       io.to(roomId).emit('match', {
         roomId,
         partnerInfo: {
-          username: matchUser.username,
-          country: matchUser.country,
-          language: matchUser.language
+          username: matchUser.username
         }
       });
 
       io.to(matchUser.id).emit('match', {
         roomId,
         partnerInfo: {
-          username,
-          country,
-          language
+          username: user.username
         }
       });
+
+      console.log(`Match found: ${socket.id} ↔ ${matchUser.id}`);
     } else {
       waitingUsers.push(user);
     }
@@ -90,30 +77,10 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('chatMessage', { sender: 'Stranger', message });
   });
 
-  socket.on('reportUser', ({ roomId }) => {
-    const other = getOtherUserInRoom(roomId, socket.id);
-    if (other) {
-      reportedUsers.add(other);
-      console.log(`Reported user: ${other}`);
-    }
-  });
-
-  socket.on('blockUser', ({ roomId }) => {
-    const other = getOtherUserInRoom(roomId, socket.id);
-    if (other) {
-      blockedPairs.add(`${socket.id}-${other}`);
-      blockedPairs.add(`${other}-${socket.id}`);
-      console.log(`Blocked pair: ${socket.id} <-> ${other}`);
-    }
-  });
-
-  
   socket.on('disconnect', () => {
     onlineUsers--;
     io.emit('userCount', onlineUsers);
     console.log(`User disconnected: ${socket.id} | Online users: ${onlineUsers}`);
-
-    console.log('User disconnected:', socket.id);
     waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
   });
 });
