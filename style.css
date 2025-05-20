@@ -81,3 +81,19 @@ input, button, select {
   border-radius: 12px;
   font-weight: bold;
 }
+
+@media (max-width: 768px) {
+  .video-container {
+    flex-direction: column !important;
+    align-items: center;
+  }
+  video {
+    width: 90% !important;
+    height: auto !important;
+    margin-bottom: 10px;
+  }
+  .video-label {
+    top: -20px;
+    font-size: 14px;
+  }
+}
