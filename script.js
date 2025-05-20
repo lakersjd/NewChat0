@@ -147,3 +147,7 @@ socket.on('match', ({ roomId, partnerInfo }) => {
   document.getElementById('partnerCountry').textContent = partnerInfo.country || "Unknown";
   document.getElementById('partnerLanguage').textContent = partnerInfo.language || "Unknown";
 });
+
+socket.on('userCount', (count) => {
+  document.getElementById('userCount').textContent = `Users Online: ${count}`;
+});

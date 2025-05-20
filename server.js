@@ -21,7 +21,14 @@ function getOtherUserInRoom(roomId, currentId) {
   return currentId === id1 ? id2 : id1;
 }
 
+
+let onlineUsers = 0;
+
 io.on('connection', (socket) => {
+  onlineUsers++;
+  io.emit('userCount', onlineUsers);
+  console.log(`User connected: ${socket.id} | Online users: ${onlineUsers}`);
+
   console.log('User connected:', socket.id);
 
   socket.on('joinQueue', ({ username, gender, tags, country, language }) => {
@@ -35,7 +42,10 @@ io.on('connection', (socket) => {
       tags.some(tag => u.tags.includes(tag))
     );
 
+    
     if (matchIndex !== -1) {
+      console.log(`Match found: ${socket.id} ↔ ${matchUser.id}`);
+
       const matchUser = waitingUsers.splice(matchIndex, 1)[0];
       const roomId = `${socket.id}#${matchUser.id}`;
 
@@ -97,7 +107,12 @@ io.on('connection', (socket) => {
     }
   });
 
+  
   socket.on('disconnect', () => {
+    onlineUsers--;
+    io.emit('userCount', onlineUsers);
+    console.log(`User disconnected: ${socket.id} | Online users: ${onlineUsers}`);
+
     console.log('User disconnected:', socket.id);
     waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
   });
