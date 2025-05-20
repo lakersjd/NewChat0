@@ -181,7 +181,12 @@ socket.on('match', ({ roomId, partnerInfo }) => {
   currentRoom = roomId;
   document.getElementById('partnerCountry').textContent = partnerInfo.country || "Unknown";
   document.getElementById('partnerLanguage').textContent = partnerInfo.language || "Unknown";
-  document.getElementById('connectedStatus').textContent = "Connected to a stranger!";
+  const status = document.getElementById('connectedStatus');
+  status.textContent = "Connected to a stranger!";
+  status.style.opacity = 1;
+  setTimeout(() => {
+    status.style.opacity = 0;
+  }, 3000);
   document.getElementById('searching').classList.add('hidden');
   document.getElementById('chat').classList.remove('hidden');
 });

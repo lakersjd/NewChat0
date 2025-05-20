@@ -59,13 +59,13 @@ io.on('connection', (socket) => {
       console.log(`Match found: ${socket.id} ↔ ${matchUser.id}`);
     } else {
       waitingUsers.push(user);
+      console.log(`User ${socket.id} added to queue`);
     }
   });
 
   socket.on('leaveRoom', ({ roomId }) => {
-    const user = { id: socket.id, username: socket.username || 'Anonymous' };
-
     socket.leave(roomId);
+    const user = { id: socket.id, username: socket.username || 'Anonymous' };
     waitingUsers.push(user);
     const other = getOtherUserInRoom(roomId, socket.id);
     if (other) {
