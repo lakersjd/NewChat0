@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stranger Video Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="home">
+    <h1>Connect with Strangers</h1>
+    <form id="preferences">
+      <input type="text" id="username" placeholder="Username" required>
+      <select id="gender">
+        <option value="any">Any Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <input type="text" id="tags" placeholder="Tags (comma separated)">
+      <button type="submit">Start Chat</button>
+    </form>
+  </div>
+
+  <div id="chat" class="hidden">
+    <div class="video-container">
+      <video id="localVideo" autoplay muted></video>
+      <video id="remoteVideo" autoplay></video>
+    </div>
+    <div class="chat-box">
+      <div id="messages"></div>
+      <input id="messageInput" placeholder="Type a message...">
+      <button id="sendBtn">Send</button>
+    </div>
+    <div class="actions">
+      <button id="skipBtn">Skip</button>
+      <button id="stopBtn">Stop</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
