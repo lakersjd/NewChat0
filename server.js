@@ -31,6 +31,9 @@ io.on('connection', (socket) => {
     const user = { id: socket.id, username };
     socket.username = username;
 
+    // Remove any duplicate before re-adding
+    waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
+
     const matchIndex = waitingUsers.findIndex(u =>
       u.id !== socket.id && !blockedPairs.has(`${u.id}-${socket.id}`)
     );
@@ -65,8 +68,13 @@ io.on('connection', (socket) => {
 
   socket.on('leaveRoom', ({ roomId }) => {
     socket.leave(roomId);
-    const user = { id: socket.id, username: socket.username || 'Anonymous' };
-    waitingUsers.push(user);
+    setTimeout(() => {
+      const user = { id: socket.id, username: socket.username || 'Anonymous' };
+      waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
+      waitingUsers.push(user);
+      console.log(`User ${socket.id} re-added to queue after skip.`);
+    }, 100); // slight delay to avoid race condition
+
     const other = getOtherUserInRoom(roomId, socket.id);
     if (other) {
       io.to(other).emit('strangerDisconnected');
