@@ -69,3 +69,15 @@ input, button, select {
   opacity: 0.3;
   transition: opacity 0.2s ease;
 }
+
+.video-label {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  background: rgba(0,0,0,0.6);
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+}

@@ -29,6 +29,7 @@ io.on('connection', (socket) => {
 
   socket.on('joinQueue', ({ username }) => {
     const user = { id: socket.id, username };
+    socket.username = username;
 
     const matchIndex = waitingUsers.findIndex(u =>
       u.id !== socket.id && !blockedPairs.has(`${u.id}-${socket.id}`)
@@ -62,7 +63,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('leaveRoom', ({ roomId }) => {
+    const user = { id: socket.id, username: socket.username || 'Anonymous' };
+
     socket.leave(roomId);
+    waitingUsers.push(user);
     const other = getOtherUserInRoom(roomId, socket.id);
     if (other) {
       io.to(other).emit('strangerDisconnected');

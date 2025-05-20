@@ -75,12 +75,16 @@
     <p>Country: <span id="partnerCountry">Unknown</span></p>
     <p>Language: <span id="partnerLanguage">Unknown</span></p>
   </div>
-    <div class="video-container">
-      <div style="position:relative;">
-    <video id="localVideo" autoplay muted></video>
+    <div class="video-container" style="position:relative; display: flex; justify-content: space-around; align-items: flex-start;">
+      <div style="position:relative; text-align:center;">
+    <div class="video-label">You</div>
+    <video id="localVideo" autoplay muted playsinline></video>
     <div id="localMicIndicator" class="mic-ring"></div>
   </div>
-      <video id="remoteVideo" autoplay></video>
+      <div style="position:relative; text-align:center;">
+    <div class="video-label">Stranger</div>
+    <video id="remoteVideo" autoplay playsinline></video>
+  </div>
     </div>
     <div class="chat-box">
       <div id="messages"></div>
