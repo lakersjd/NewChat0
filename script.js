@@ -36,6 +36,23 @@ document.getElementById('preferences').onsubmit = async (e) => {
   localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
   document.getElementById('localVideo').srcObject = localStream;
+
+const audioContext = new AudioContext();
+const micSource = audioContext.createMediaStreamSource(localStream);
+const analyser = audioContext.createAnalyser();
+analyser.fftSize = 64;
+const dataArray = new Uint8Array(analyser.frequencyBinCount);
+micSource.connect(analyser);
+
+function detectMicActivity() {
+  analyser.getByteFrequencyData(dataArray);
+  const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+  const isTalking = volume > 15;
+  document.getElementById('localMicIndicator').style.opacity = isTalking ? 1 : 0.3;
+  requestAnimationFrame(detectMicActivity);
+}
+detectMicActivity();
+
 };
 
 socket.on('match', (roomId) => {

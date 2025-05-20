@@ -76,7 +76,10 @@
     <p>Language: <span id="partnerLanguage">Unknown</span></p>
   </div>
     <div class="video-container">
-      <video id="localVideo" autoplay muted></video>
+      <div style="position:relative;">
+    <video id="localVideo" autoplay muted></video>
+    <div id="localMicIndicator" class="mic-ring"></div>
+  </div>
       <video id="remoteVideo" autoplay></video>
     </div>
     <div class="chat-box">

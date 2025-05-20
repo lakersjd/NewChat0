@@ -57,3 +57,15 @@ input, button, select {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.mic-ring {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 20px;
+  height: 20px;
+  border: 3px solid lime;
+  border-radius: 50%;
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}

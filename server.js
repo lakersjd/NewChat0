@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
       !blockedPairs.has(`${u.id}-${socket.id}`) &&
       (country === "any" || u.country === "any" || u.country === country) &&
       (language === "any" || u.language === "any" || u.language === language) &&
-      tags.some(tag => u.tags.includes(tag))
+      !tags.length || !u.tags.length || tags.some(tag => u.tags.includes(tag))
     );
 
     
