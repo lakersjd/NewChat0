@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 let waitingUsers = [];
 const blockedPairs = new Set();
+let onlineUsers = 0;
 
 app.use(express.static(path.join(__dirname)));
 
@@ -20,24 +21,17 @@ function getOtherUserInRoom(roomId, currentId) {
   return currentId === id1 ? id2 : id1;
 }
 
-let onlineUsers = 0;
-
 io.on('connection', (socket) => {
   onlineUsers++;
   io.emit('userCount', onlineUsers);
-  console.log(`User connected: ${socket.id} | Online users: ${onlineUsers}`);
 
   socket.on('joinQueue', ({ username }) => {
     const user = { id: socket.id, username };
     socket.username = username;
 
-    // Remove any duplicate before re-adding
     waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
 
-    const matchIndex = waitingUsers.findIndex(u =>
-      u.id !== socket.id && !blockedPairs.has(`${u.id}-${socket.id}`)
-    );
-
+    const matchIndex = waitingUsers.findIndex(u => u.id !== socket.id);
     if (matchIndex !== -1) {
       const matchUser = waitingUsers.splice(matchIndex, 1)[0];
       const roomId = `${socket.id}#${matchUser.id}`;
@@ -47,22 +41,14 @@ io.on('connection', (socket) => {
 
       io.to(roomId).emit('match', {
         roomId,
-        partnerInfo: {
-          username: matchUser.username
-        }
+        partnerInfo: { username: matchUser.username }
       });
-
       io.to(matchUser.id).emit('match', {
         roomId,
-        partnerInfo: {
-          username: user.username
-        }
+        partnerInfo: { username: user.username }
       });
-
-      console.log(`Match found: ${socket.id} ↔ ${matchUser.id}`);
     } else {
       waitingUsers.push(user);
-      console.log(`User ${socket.id} added to queue`);
     }
   });
 
@@ -72,13 +58,9 @@ io.on('connection', (socket) => {
       const user = { id: socket.id, username: socket.username || 'Anonymous' };
       waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
       waitingUsers.push(user);
-      console.log(`User ${socket.id} re-added to queue after skip.`);
-    }, 100); // slight delay to avoid race condition
-
+    }, 100);
     const other = getOtherUserInRoom(roomId, socket.id);
-    if (other) {
-      io.to(other).emit('strangerDisconnected');
-    }
+    if (other) io.to(other).emit('strangerDisconnected');
   });
 
   socket.on('signal', ({ roomId, sdp, candidate }) => {
@@ -92,7 +74,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     onlineUsers--;
     io.emit('userCount', onlineUsers);
-    console.log(`User disconnected: ${socket.id} | Online users: ${onlineUsers}`);
     waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
   });
 });

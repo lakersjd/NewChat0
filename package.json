@@ -1,14 +1,6 @@
-
 {
-  "name": "stranger-video-chat",
-  "version": "1.0.0",
-  "description": "A website to chat and video call with strangers.",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2"
+    "node": "^20.19.2",
+    "server.js": "^1.0.0"
   }
 }
