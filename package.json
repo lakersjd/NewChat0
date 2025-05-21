@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "node": "^20.19.2",
-    "server.js": "^1.0.0"
+    "npm": "^11.4.0",
+    "server.js": "^1.0.0",
+    "start": "^5.1.0"
   }
 }
