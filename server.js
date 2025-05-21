@@ -1,83 +1,57 @@
-
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+const express = require("express");
+const http = require("http");
+const socketIO = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketIO(server);
 
-const PORT = process.env.PORT || 3000;
+app.use(express.static(__dirname + "/public"));
 
-let waitingUsers = [];
-const blockedPairs = new Set();
-let onlineUsers = 0;
+let queue = [];
 
-app.use(express.static(path.join(__dirname)));
-
-function getOtherUserInRoom(roomId, currentId) {
-  const [id1, id2] = roomId.split('#');
-  return currentId === id1 ? id2 : id1;
-}
-
-io.on('connection', (socket) => {
-  onlineUsers++;
-  io.emit('userCount', onlineUsers);
-
-  socket.on('joinQueue', ({ username }) => {
-    const user = { id: socket.id, username };
-    socket.username = username;
-
-    waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
-
-    const matchIndex = waitingUsers.findIndex(u => u.id !== socket.id);
-    if (matchIndex !== -1) {
-      const matchUser = waitingUsers.splice(matchIndex, 1)[0];
-      const roomId = `${socket.id}#${matchUser.id}`;
-
-      socket.join(roomId);
-      io.to(matchUser.id).socketsJoin(roomId);
-
-      io.to(roomId).emit('match', {
-        roomId,
-        partnerInfo: { username: matchUser.username }
-      });
-      io.to(matchUser.id).emit('match', {
-        roomId,
-        partnerInfo: { username: user.username }
-      });
+io.on("connection", socket => {
+  socket.on("join", ({ country, language }) => {
+    socket.meta = { country, language };
+    let partner = queue.find(
+      s => s !== socket &&
+      s.meta.country === country &&
+      s.meta.language === language
+    );
+    if (partner) {
+      queue = queue.filter(s => s !== partner);
+      socket.partner = partner;
+      partner.partner = socket;
+      socket.emit("match", { initiator: true });
+      partner.emit("match", { initiator: false });
     } else {
-      waitingUsers.push(user);
+      queue.push(socket);
     }
   });
 
-  socket.on('leaveRoom', ({ roomId }) => {
-    socket.leave(roomId);
-    setTimeout(() => {
-      const user = { id: socket.id, username: socket.username || 'Anonymous' };
-      waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
-      waitingUsers.push(user);
-    }, 100);
-    const other = getOtherUserInRoom(roomId, socket.id);
-    if (other) io.to(other).emit('strangerDisconnected');
+  socket.on("offer", data => {
+    if (socket.partner) socket.partner.emit("offer", data);
   });
-
-  socket.on('signal', ({ roomId, sdp, candidate }) => {
-    socket.to(roomId).emit('signal', { sdp, candidate });
+  socket.on("answer", data => {
+    if (socket.partner) socket.partner.emit("answer", data);
   });
-
-  socket.on('chatMessage', ({ roomId, message }) => {
-    socket.to(roomId).emit('chatMessage', { sender: 'Stranger', message });
+  socket.on("candidate", data => {
+    if (socket.partner) socket.partner.emit("candidate", data);
   });
-
-  socket.on('disconnect', () => {
-    onlineUsers--;
-    io.emit('userCount', onlineUsers);
-    waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
+  socket.on("message", data => {
+    if (socket.partner) socket.partner.emit("message", data);
+  });
+  socket.on("skip", () => {
+    if (socket.partner) socket.partner.emit("stop");
+    socket.partner = null;
+  });
+  socket.on("stop", () => {
+    if (socket.partner) socket.partner.emit("stop");
+    socket.partner = null;
+  });
+  socket.on("report", () => {
+    console.log("User reported.");
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+server.listen(3000, () => console.log("Server running on http://localhost:3000"));
